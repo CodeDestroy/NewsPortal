@@ -15,10 +15,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -42,22 +44,24 @@ public class NewsController {
 
     @GetMapping("/news/upload")
     public String uploadNews(Model model) {
-
         return "uploadNews";
     }
 
+    private String unzipPath = "C:\\UploadedNews";
+
     @PostMapping(path = "/news/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String handleFileUpload(@RequestParam("file") MultipartFile file, Model model) throws IOException {
+
+        System.setProperty("file.encoding", "UTF-8");
         String returnablePage = "redirect:/news";
         if (!file.isEmpty()) {
-            deleteAllFilesFolder("src/main/resources/files/Unzip");
             unzip(file);
             int count = 0;
-            try (Stream<Path> files = Files.list(Paths.get("src/main/resources/files/Unzip"))) {
+            try (Stream<Path> files = Files.list(Paths.get(unzipPath))) {
                 count = (int) files.count();
             }
             if (count == 1) {
-                FileReader reader = new FileReader("src/main/resources/files/Unzip/article.txt");
+                FileReader reader = new FileReader(unzipPath + "/article.txt", StandardCharsets.UTF_8);
                 try (BufferedReader bufReader = new BufferedReader(reader)) {
                     int i = 0;
                     List<String> lines = new ArrayList<>();
@@ -77,9 +81,9 @@ public class NewsController {
                             text += lines.get(j);
                             text += "\n";
                         }
+
                         Post post = new Post(title, text);
                         postRepository.save(post);
-
                     }
 
                 } catch (IOException ex) {
@@ -96,13 +100,17 @@ public class NewsController {
     }
 
     public void deleteAllFilesFolder(String path) {
-        for (File myFile : new File(path).listFiles())
-            if (myFile.isFile()) myFile.delete();
+        Arrays.stream(new File(path).listFiles()).filter(File::isFile).forEach(File::delete);
     }
 
     public void unzip(MultipartFile file) throws IOException {
         ZipInputStream inputStream = new ZipInputStream(file.getInputStream());
-        Path path = Paths.get("src/main/resources/files/Unzip");
+        if (Files.exists(Path.of(unzipPath)))
+            deleteAllFilesFolder(unzipPath);
+        else
+            Files.createDirectory(Path.of(unzipPath));
+
+        Path path = Paths.get(unzipPath);
         for (ZipEntry entry; (entry = inputStream.getNextEntry()) != null; ) {
             Path resolvedPath = path.resolve(entry.getName());
             if (!entry.isDirectory()) {
