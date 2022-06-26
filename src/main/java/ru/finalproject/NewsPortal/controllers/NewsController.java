@@ -4,9 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.finalproject.NewsPortal.models.Post;
 import ru.finalproject.NewsPortal.repos.PostRepository;
@@ -46,8 +44,24 @@ public class NewsController {
     public String uploadNews(Model model) {
         return "uploadNews";
     }
+    @GetMapping(path = "/news/upload2")
+    public String uploadNewsByText(Model model){
+        return "uploadNewsByText";
+    }
+
+    @PostMapping(path = "/news/upload2")
+    public String newsAdd (@RequestParam String title, @RequestParam String text, Model model){
+        Post post = new Post(title, text);
+        postRepository.save(post);
+        return "redirect:/news";
+    }
+
+
+
 
     private String unzipPath = "C:\\UploadedNews";
+
+
 
     @PostMapping(path = "/news/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String handleFileUpload(@RequestParam("file") MultipartFile file, Model model) throws IOException {
