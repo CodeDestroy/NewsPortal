@@ -8,9 +8,9 @@
 </head>
 <body style="background-color: #FFFFE0">
 <header th:insert="blocks/header :: header"></header>
-<div class="container-xl mt-5" >
+<div class="container-xl mt-5">
     <h1>Новости сайта</h1>
-    <div th:each="el : ${posts}" class="alert alert-info mt-2" style="color: #fff; background-color: black">
+    <div th:each="el : ${posts}" class="alert alert-info mt-2" style="color: #fff; background-color: #696969; border-width: 0px;">
         <h3 th:text="${el.title}"></h3>
         <details>
             <summary>Читать статью</summary>
